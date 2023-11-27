@@ -17,6 +17,7 @@ namespace FamilyTreeAPI
         public override void Configure(IFunctionsHostBuilder builder)
         {
             builder.Services.AddTransient<IPersonService, PersonService>();
+            builder.Services.AddTransient<IGoogleSheetsService, GoogleSheetsService>();
         }
     }
 }

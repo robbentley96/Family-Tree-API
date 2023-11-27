@@ -10,22 +10,21 @@ using Newtonsoft.Json;
 
 namespace FamilyTreeAPI
 {
-    public class DeletePerson
+    public class GetPerson
     {
         private readonly IPersonService _personService;
-        public DeletePerson(IPersonService personService)
+        public GetPerson(IPersonService personService)
         {
             _personService = personService;
         }
-        [FunctionName("DeletePerson")]
+        [FunctionName("GetPerson")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "delete", Route = "DeletePerson/{personID}")] HttpRequest req, string personID,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "get", Route = "GetPerson/{personID}")] HttpRequest req, string personID, ILogger log)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
-            
-            await _personService.DeletePerson(personID);
-            return new OkResult();
+
+            Person person = await _personService.GetPerson(personID);
+            return new OkObjectResult(person);
         }
     }
 }

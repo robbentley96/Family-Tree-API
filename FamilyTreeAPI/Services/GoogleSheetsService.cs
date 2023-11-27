@@ -10,10 +10,11 @@ using Google.Apis.Services;
 using Google.Apis.Util.Store;
 using System.IO;
 using System.Threading;
+using System.Security.Cryptography.X509Certificates;
 
 namespace FamilyTreeAPI
 {
-    public class GoogleSheetsService
+    public class GoogleSheetsService : IGoogleSheetsService
     {
         string[] Scopes = { SheetsService.Scope.Spreadsheets };
         string ApplicationName = "Family Tree";
@@ -35,43 +36,93 @@ namespace FamilyTreeAPI
             return service;
         }
 
-        public void GetValues()
+        public List<List<string>> GetValues(string sheetName, string dataRange)
         {
             SheetsService service = AuthorizeGoogleApp();
 
-            var range = $"People!A:K";
+            var range = $"{sheetName}!{dataRange}";
             SpreadsheetsResource.ValuesResource.GetRequest request =
                     service.Spreadsheets.Values.Get(SheetId, range);
-            // Ecexuting Read Operation...
             var response = request.Execute();
-            // Getting all records from Column A to E...
             IList<IList<object>> values = response.Values;
             if (values != null && values.Count > 0)
             {
+                List<List<string>> valuesArray = new List<List<string>>();
                 foreach (var row in values)
                 {
-                    // Writing Data on Console...
-                    Console.WriteLine("{0} | {1} | {2} | {3} | {4} ", row[0], row[1], row[2], row[3], row[4]);
+                    List<string> rowStrings = new List<string>();
+                    foreach(var entry in row)
+                    {
+                        rowStrings.Add(entry.ToString());
+                    }
+                    valuesArray.Add(rowStrings);
                 }
+                return valuesArray;
             }
             else
             {
-                Console.WriteLine("No data found.");
+                return new List<List<string>>();
             }
         }
 
-        public void AddRow()
+        public void AddRow(string sheetName, List<string> valueList, string dataRange)
         {
             SheetsService service = AuthorizeGoogleApp();
             // Specifying Column Range for reading...
-            var range = $"People!A:K";
+            var range = $"{sheetName}!{dataRange}";
             var valueRange = new ValueRange();
-            var oblist = new List<object>() { "1", "2", "3", "5", "4", "1", "2", "3", "5", "4", "no" };
+            List<object> oblist = valueList.ToList<object>();
             valueRange.Values = new List<IList<object>> { oblist };
             // Append the above record...
             var appendRequest = service.Spreadsheets.Values.Append(valueRange, SheetId, range);
             appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.AppendRequest.ValueInputOptionEnum.USERENTERED;
             var appendReponse = appendRequest.Execute();
+        }
+        public void UpdateRow(string sheetName, List<string> valueList, string dataRange)
+        {
+            SheetsService service = AuthorizeGoogleApp();
+            // Specifying Column Range for reading...
+            var range = $"{sheetName}!{dataRange}";
+            var valueRange = new ValueRange();
+            List<object> oblist = valueList.ToList<object>();
+            valueRange.Values = new List<IList<object>> { oblist };
+            // Append the above record...
+            var appendRequest = service.Spreadsheets.Values.Update(valueRange, SheetId, range);
+            appendRequest.ValueInputOption = SpreadsheetsResource.ValuesResource.UpdateRequest.ValueInputOptionEnum.USERENTERED;
+            var appendReponse = appendRequest.Execute();
+        }
+
+        public void DeleteRow(string sheetName, int rowIndex)
+        {
+            SheetsService service = AuthorizeGoogleApp();
+
+            var deleteRequest = new BatchUpdateSpreadsheetRequest()
+            {
+                Requests = new List<Request>()
+                {
+                    new Request()
+                    {
+                        DeleteDimension = new DeleteDimensionRequest()
+                        {
+                            Range = new DimensionRange()
+                            {
+                                SheetId = 0,
+                                Dimension="ROWS",
+                                StartIndex=rowIndex - 1,
+                                EndIndex=rowIndex
+                            }
+
+                        }
+                    }
+
+
+                }
+            };
+
+            service.Spreadsheets.BatchUpdate(deleteRequest, SheetId).Execute();
+
+
+
         }
     }
 

@@ -20,7 +20,7 @@ namespace FamilyTreeAPI
         [FunctionName("UpdatePerson")]
         public async Task<IActionResult> Run(
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "UpdatePerson/{personId}")] Person person,
-            ILogger log, int personId)
+            ILogger log, string personId)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
