@@ -95,7 +95,7 @@ namespace FamilyTreeAPI
         public void DeleteRow(string sheetName, int rowIndex)
         {
             SheetsService service = AuthorizeGoogleApp();
-
+            int sheetId = GetSheetId(sheetName, service);
             var deleteRequest = new BatchUpdateSpreadsheetRequest()
             {
                 Requests = new List<Request>()
@@ -106,7 +106,7 @@ namespace FamilyTreeAPI
                         {
                             Range = new DimensionRange()
                             {
-                                SheetId = 0,
+                                SheetId = sheetId,
                                 Dimension="ROWS",
                                 StartIndex=rowIndex - 1,
                                 EndIndex=rowIndex
@@ -124,6 +124,19 @@ namespace FamilyTreeAPI
 
 
         }
+
+        private int GetSheetId(string sheetName, SheetsService service)
+        {
+			var spreadsheet = service.Spreadsheets.Get(SheetId).Execute();
+			var sheet = spreadsheet.Sheets.FirstOrDefault(s => s.Properties.Title == sheetName);
+
+			if (sheet == null)
+			{
+				throw new Exception($"Sheet with name '{sheetName}' not found.");
+			}
+
+			return (int)sheet.Properties.SheetId;
+		}
     }
 
 

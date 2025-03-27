@@ -2,30 +2,30 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.WebJobs;
-using Microsoft.Azure.WebJobs.Extensions.Http;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Microsoft.Azure.Functions.Worker;
 
 namespace FamilyTreeAPI
 {
     public class CreatePerson
     {
         private readonly IPersonService _personService;
-        public CreatePerson(IPersonService personService)
+        private readonly ILogger<CreatePerson> _logger;
+        public CreatePerson(IPersonService personService, ILoggerFactory loggerFactory)
         {
             _personService = personService;
-        }
-        [FunctionName("CreatePerson")]
+			_logger = loggerFactory.CreateLogger<CreatePerson>();
+		}
+        [Function("CreatePerson")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] Person person,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] Person person)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+			_logger.LogInformation("C# HTTP trigger function processed a request.");
 
-            await _personService.CreatePerson(person);
-            return new OkResult();
+            CreatePersonResponse response = await _personService.CreatePerson(person);
+            return new OkObjectResult(response);
         }
     }
 }

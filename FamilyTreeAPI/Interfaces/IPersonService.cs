@@ -7,10 +7,10 @@ namespace FamilyTreeAPI
 {
 	public interface IPersonService
 	{
-		public Task<List<Person>> GetPeople();
-		public Task<Person> GetPerson(string personId);
+		public Task<List<PersonSimplifiedDTO>> GetPeople();
+		public Task<PersonDTO> GetPersonDTO(string personId);
 
-        public Task CreatePerson(Person person);
+        public Task<CreatePersonResponse> CreatePerson(Person person);
 		public Task UpdatePerson(Person person, string personId);
 		public Task DeletePerson(string personID);
 	}
